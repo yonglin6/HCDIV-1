@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment 1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #def9ed;
+        }
+        h1,h2{
+            text-align: center;
+        }
+        table {
+            width: 50%; 
+            margin: 20px auto;
+            border-collapse: collapse;
+            table-layout: fixed; 
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f3fdac; 
+        }
+    </style>
+</head>
+<body>
+
+<h1>Singapore 2-Hour Weather Forecast</h1>
+<h3>Xiong Yonglin</h3>
+<div id="last-updated">Loading data...</div>
+<table id="forecast-table">
+    <thead>
+        <tr>
+            <th>Area</th>
+            <th>Forecast</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td colspan="2">Loading weather data...</td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    async function fetchWeatherForecast() {
+        const apiUrl = 'https://api.data.gov.sg/v1/environment/2-hour-weather-forecast';
+        
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data && data.items && data.items.length > 0 && data.items[0].forecasts) {
+                displayWeatherForecast(data);
+                updateLastUpdatedTime(data.items[0].update_timestamp);
+            } else {
+                throw new Error("Unexpected data structure");
+            }
+        } catch (error) {
+            document.querySelector('#forecast-table tbody').innerHTML = `<tr><td colspan="2">Failed to load weather data: ${error.message}</td></tr>`;
+        }
+    }
+
+    function displayWeatherForecast(data) {
+        const forecasts = data.items[0].forecasts;
+        const tableBody = document.querySelector('#forecast-table tbody');
+        tableBody.innerHTML = '';
+
+        forecasts.forEach(forecast => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${forecast.area}</td>
+                <td>${forecast.forecast}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function updateLastUpdatedTime(timestamp) {
+        const updatedTime = new Date(timestamp);
+        const formattedTime = updatedTime.toLocaleString('en-GB', { hour12: false });
+        document.getElementById('last-updated').innerText = `Last read: ${formattedTime}`;
+    }
+
+    // Fetch the weather forecast data when the page loads
+    fetchWeatherForecast();
+</script>
+
+</body>
+</html>
